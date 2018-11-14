@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using static MazeConstants;
+using static Orientation;
 
 public abstract class MazeGenerator
-{
+{   
     /// <summary>
     /// 指定されたサイズの幅の迷路を返します
     /// 引数が適当な数字でなければ、それに最も近い大きさの迷路のうち小さいほうを返します
@@ -21,40 +23,58 @@ public abstract class MazeGenerator
 
 public class DigMazeGenerator : MazeGenerator
 {
-    private static string[,] maze;
-    private static int width = 5;
-    private static int height = 5;
-    private static List<int[,]> startCells;
-    private static Orientation MazeOrientation;
-    private static Random _random = new Random();
-    const string Wall = "#";
-    const string Path = " ";
+    private const int MinimumSizeOfMaze = 5;
+    
+    private char[,] maze;
+    private List<int[]> startCells;
+    private Orientation MazeOrientation;
+    private int width;
+    private int height;
 
-    override Maze GetFixedMaze(int width, int height)
+    private int Width
+    {
+        set
+        {
+            width = value;
+            if (width < MinimumSizeOfMaze) width = MinimumSizeOfMaze;
+            if (width % 2 == 0) width--;
+        }
+        get => width;
+    }
+
+    private int Height
+    {
+        set
+        {
+            height = value;
+            if (height < MinimumSizeOfMaze) height = MinimumSizeOfMaze;
+            if (height % 2 == 0) height--;
+        }
+        get => height;
+    }
+
+    public override Maze GetFixedMaze(int width, int height)
     {
         // 入力値をwidth, heightに代入
-        width = x;
-        height = y;
+        Width = width;
+        Height = height;
 
-        // 規格外かどうかを調べる
-        if (width <= 6) width = 5;
-        if (height <= 6) height = 5;
-        if (width % 2 == 0) width = x - 1;
-        if (height % 2 == 0) height = y - 1;
+        maze = new char[Width, Height];
+        startCells = new List<int[]>();
 
-        maze = new string[width, height];
-        startCells = new List<Location>();
+        MazeOrientation = new Random().Next(2) == 0 ? Vertical : Horizontal;
 
-        MazeOrientation = _random.Next(2) == 0 ? Orientation.Vertical : Orientation.Horizontal;
+        var mMaze = CreateMaze();
+        
+        var mStart = GetMazeStart();
+        var mGoal = GetMazeGoal();
 
-        string[,] mMaze = CreateMaze();
-        Location mStart = GetMazeStart();
-        Location mGoal = GetMazeGoal();
+        mMaze[mStart[0], mStart[1]] = Start;
+        mMaze[mGoal[0], mGoal[1]] = Goal;
 
-        mMaze[mStart.X, mStart.Y] = "S";
-        mMaze[mGoal.X, mGoal.Y] = "G";
-
-        return new Maze(mMaze, mStart, mGoal);
+        Debug(mMaze, mStart, mGoal);
+        
+        return new Maze();
     }
     public override Maze GetResponsiveMaze()
     {
@@ -63,14 +83,14 @@ public class DigMazeGenerator : MazeGenerator
         return GetFixedMaze(x, y);
     }
 
-    private static string[,] CreateMaze()
+    private char[,] CreateMaze()
     {
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < Height; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < Width; x++)
             {
                 // 外周部を通路にする
-                if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                 {
                     maze[x, y] = Path;
                 }
@@ -80,15 +100,17 @@ public class DigMazeGenerator : MazeGenerator
                 }
             }
         }
+        
+        
 
         Dig(1, 1);
 
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < Height; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < Width; x++)
             {
                 // 外周部を壁に戻す(スタート地点とゴール地点は開ける)
-                if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                 {
                     maze[x, y] = Wall;
                 }
@@ -97,72 +119,79 @@ public class DigMazeGenerator : MazeGenerator
         return maze;
     }
 
-    private static void Dig(int x, int y)
+    private void Dig(int x, int y)
     {
-        var r = new Random();
         while (true)
         {
-            // 掘ることのできる方向のリストを作成
-            var directions = new List<Direction>();
-            if (maze[x, y - 1] == Wall && maze[x, y - 2] == Wall)
-                directions.Add(Direction.Up);
-            if (maze[x, y + 1] == Wall && maze[x, y + 2] == Wall)
-                directions.Add(Direction.Down);
-            if (maze[x - 1, y] == Wall && maze[x - 2, y] == Wall)
-                directions.Add(Direction.Left);
-            if (maze[x + 1, y] == Wall && maze[x + 2, y] == Wall)
-                directions.Add(Direction.Right);
-
-            // 掘ることのできる方向がなければループを抜ける
-            if (directions.Count == 0) break;
-
-            // 指定座標を通路とする
-            SetPath(x, y);
-
-            // ランダムに方向を決めて掘る
-            var directionIndex = r.Next(directions.Count);
-            switch (directions[directionIndex])
+            var r = new Random();
+            while (true)
             {
-                case Direction.Up:
-                    SetPath(x, --y);
-                    SetPath(x, --y);
-                    break;
-                case Direction.Down:
-                    SetPath(x, ++y);
-                    SetPath(x, ++y);
-                    break;
-                case Direction.Left:
-                    SetPath(--x, y);
-                    SetPath(--x, y);
-                    break;
-                case Direction.Right:
-                    SetPath(++x, y);
-                    SetPath(++x, y);
-                    break;
+                // 掘ることのできる方向のリストを作成
+                var directions = new List<Direction>();
+                try
+                {
+                    if (maze[x, y - 1] == Wall && maze[x, y - 2] == Wall) directions.Add(Direction.Up);
+                    if (maze[x, y + 1] == Wall && maze[x, y + 2] == Wall) directions.Add(Direction.Down);
+                    if (maze[x - 1, y] == Wall && maze[x - 2, y] == Wall) directions.Add(Direction.Left);
+                    if (maze[x + 1, y] == Wall && maze[x + 2, y] == Wall) directions.Add(Direction.Right);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    // Do Nothing
+                }
+
+                // 掘ることのできる方向がなければループを抜ける
+                if (directions.Count == 0) break;
+
+                // 指定座標を通路とする
+                SetPath(x, y);
+                                
+                // ランダムに方向を決めて掘る
+                var directionIndex = r.Next(directions.Count);
+                switch (directions[directionIndex])
+                {
+                    case Direction.Up:
+                        SetPath(x, --y);
+                        SetPath(x, --y);
+                        break;
+                    case Direction.Down:
+                        SetPath(x, ++y);
+                        SetPath(x, ++y);
+                        break;
+                    case Direction.Left:
+                        SetPath(--x, y);
+                        SetPath(--x, y);
+                        break;
+                    case Direction.Right:
+                        SetPath(++x, y);
+                        SetPath(++x, y);
+                        break;
+                }
             }
-        }
-        // 掘り進められなくなったとき
-        // 開始セルを取得
-        var cell = GetStartCell();
-        // 候補がなくなったとき穴掘り終了
-        if (cell != null)
-        {
-            Dig(cell.X, cell.Y);
+
+            // 掘り進められなくなったとき
+            // 開始セルを取得
+            var cell = GetStartCell();
+            // 候補がなくなったとき穴掘り終了
+            if (cell[0] == -1 && cell[1] == -1) break;
+            
+            x = cell[0];
+            y = cell[1];
         }
     }
 
-    private static void SetPath(int x, int y)
+    private void SetPath(int x, int y)
     {
         maze[x, y] = Path;
         if (x % 2 == 1 && y % 2 == 1)
         {
-            startCells.Add(new Location(x, y));
+            startCells.Add(new []{x, y});
         }
     }
 
-    private static Location GetStartCell()
+    private int[] GetStartCell()
     {
-        if (startCells.Count == 0) return null;
+        if (startCells.Count == 0) return new []{-1, -1};
 
         // ランダムに取得
         var r = new Random();
@@ -173,60 +202,71 @@ public class DigMazeGenerator : MazeGenerator
         return cell;
     }
 
-    private static Location GetMazeStart()
+    private int[] GetMazeStart()
     {
-        Location mStart = new Location(0, 0);
-        int randomResult = 0;
+        int[] mStart = {0, 0};
+        int randomResult;
 
         switch (MazeOrientation)
         {
-            case Orientation.Vertical:
+            case Vertical:
                 do
                 {
-                    randomResult = _random.Next(maze.GetLength(0));
-                    mStart.X = randomResult;
-                } while (maze[mStart.X, mStart.Y + 1] == Wall);
+                    randomResult = new Random().Next(maze.GetLength(0));
+                    mStart[0] = randomResult;
+                } while (maze[mStart[0], mStart[1] + 1] == Wall);
+
                 break;
-            case Orientation.Horizontal:
+            case Horizontal:
                 do
                 {
-                    randomResult = _random.Next(maze.GetLength(1));
-                    mStart.Y = randomResult;
-                } while (maze[mStart.X + 1, mStart.Y] == Wall);
+                    randomResult = new Random().Next(maze.GetLength(1));
+                    mStart[1] = randomResult;
+                } while (maze[mStart[0] + 1, mStart[1]] == Wall);
+
                 break;
         }
 
         return mStart;
     }
 
-    private static Location GetMazeGoal()
+    private int[] GetMazeGoal()
     {
-        Location mGoal = new Location(maze.GetLength(0) - 1, maze.GetLength(1) - 1);
-        int randomResult = 0;
+        int[] mGoal = {maze.GetLength(0) - 1, maze.GetLength(1) - 1};
+        int randomResult;
 
         switch (MazeOrientation)
         {
-            case Orientation.Vertical:
+            case Vertical:
                 do
                 {
-                    randomResult = _random.Next(maze.GetLength(0));
-                    mGoal.X = randomResult;
-                } while (maze[mGoal.X, mGoal.Y - 1] == Wall);
+                    randomResult = new Random().Next(maze.GetLength(0));
+                    mGoal[0] = randomResult;
+                } while (maze[mGoal[0], mGoal[1] - 1] == Wall);
                 break;
-            case Orientation.Horizontal:
+            case Horizontal:
                 do
                 {
-                    randomResult = _random.Next(maze.GetLength(1));
-                    mGoal.Y = randomResult;
-                } while (maze[mGoal.X - 1, mGoal.Y] == Wall);
+                    randomResult = new Random().Next(maze.GetLength(1));
+                    mGoal[1] = randomResult;
+                } while (maze[mGoal[0] - 1, mGoal[1]] == Wall);
                 break;
         }
         return mGoal;
     }
 
-    private enum Orientation
+    void Debug(char[,] maze, int[] start, int[] goal)
     {
-        Vertical = 0,
-        Horizontal = 1
+        for (int y = 0; y < maze.GetLength(1); y++)
+        {
+            for (int x = 0; x < maze.GetLength(0); x++)
+            {
+                Console.Write(maze[x,y]);
+            }
+            Console.Write(Environment.NewLine);
+        }
+        Console.WriteLine($"Size: {maze.GetLength(0)}, {maze.GetLength(1)}");
+        Console.WriteLine($"Start: {start[0]}, {start[1]}");
+        Console.WriteLine($"Goal: {goal[0]}, {goal[1]}");
     }
 }
