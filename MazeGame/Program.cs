@@ -16,7 +16,10 @@ namespace MazeGame
 
             // ゲーム開始準備
 
-            
+            // For Debugging
+            var generator = new DigMazeGenerator();
+            generator.GetFixedMaze(10, 9);
+            generator.GetResponsiveMaze();
         }
     }
 }
