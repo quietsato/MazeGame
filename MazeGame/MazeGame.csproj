@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constant.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Maze.cs" />
     <Compile Include="MazeGenerator.cs" />
