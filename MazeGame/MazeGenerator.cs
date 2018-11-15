@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using static MazeConstants;
-using static Orientation;
 
 public abstract class MazeGenerator
 {   
@@ -39,7 +37,7 @@ public class DigMazeGenerator : MazeGenerator
             if (width < MinimumSizeOfMaze) width = MinimumSizeOfMaze;
             if (width % 2 == 0) width--;
         }
-        get => width;
+        get {return width;}
     }
 
     private int Height
@@ -50,7 +48,7 @@ public class DigMazeGenerator : MazeGenerator
             if (height < MinimumSizeOfMaze) height = MinimumSizeOfMaze;
             if (height % 2 == 0) height--;
         }
-        get => height;
+        get {return height;}
     }
 
     public override Maze GetFixedMaze(int width, int height)
@@ -62,15 +60,15 @@ public class DigMazeGenerator : MazeGenerator
         maze = new char[Width, Height];
         startCells = new List<int[]>();
 
-        MazeOrientation = new Random().Next(2) == 0 ? Vertical : Horizontal;
+        MazeOrientation = new Random().Next(2) == 0 ? Orientation.Vertical : Orientation.Horizontal;
 
         var mMaze = CreateMaze();
         
         var mStart = GetMazeStart();
         var mGoal = GetMazeGoal();
 
-        mMaze[mStart[0], mStart[1]] = Start;
-        mMaze[mGoal[0], mGoal[1]] = Goal;
+        mMaze[mStart[0], mStart[1]] = MazeConstants.Start;
+        mMaze[mGoal[0], mGoal[1]] = MazeConstants.Goal;
 
         Debug(mMaze, mStart, mGoal);
         
@@ -92,11 +90,11 @@ public class DigMazeGenerator : MazeGenerator
                 // 外周部を通路にする
                 if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                 {
-                    maze[x, y] = Path;
+                    maze[x, y] = MazeConstants.Path;
                 }
                 else
                 {
-                    maze[x, y] = Wall;
+                    maze[x, y] = MazeConstants.Wall;
                 }
             }
         }
@@ -112,7 +110,7 @@ public class DigMazeGenerator : MazeGenerator
                 // 外周部を壁に戻す(スタート地点とゴール地点は開ける)
                 if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                 {
-                    maze[x, y] = Wall;
+                    maze[x, y] = MazeConstants.Wall;
                 }
             }
         }
@@ -130,10 +128,10 @@ public class DigMazeGenerator : MazeGenerator
                 var directions = new List<Direction>();
                 try
                 {
-                    if (maze[x, y - 1] == Wall && maze[x, y - 2] == Wall) directions.Add(Direction.Up);
-                    if (maze[x, y + 1] == Wall && maze[x, y + 2] == Wall) directions.Add(Direction.Down);
-                    if (maze[x - 1, y] == Wall && maze[x - 2, y] == Wall) directions.Add(Direction.Left);
-                    if (maze[x + 1, y] == Wall && maze[x + 2, y] == Wall) directions.Add(Direction.Right);
+                    if (maze[x, y - 1] == MazeConstants.Wall && maze[x, y - 2] == MazeConstants.Wall) directions.Add(Direction.Up);
+                    if (maze[x, y + 1] == MazeConstants.Wall && maze[x, y + 2] == MazeConstants.Wall) directions.Add(Direction.Down);
+                    if (maze[x - 1, y] == MazeConstants.Wall && maze[x - 2, y] == MazeConstants.Wall) directions.Add(Direction.Left);
+                    if (maze[x + 1, y] == MazeConstants.Wall && maze[x + 2, y] == MazeConstants.Wall) directions.Add(Direction.Right);
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -182,7 +180,7 @@ public class DigMazeGenerator : MazeGenerator
 
     private void SetPath(int x, int y)
     {
-        maze[x, y] = Path;
+        maze[x, y] = MazeConstants.Path;
         if (x % 2 == 1 && y % 2 == 1)
         {
             startCells.Add(new []{x, y});
@@ -209,20 +207,20 @@ public class DigMazeGenerator : MazeGenerator
 
         switch (MazeOrientation)
         {
-            case Vertical:
+            case Orientation.Vertical:
                 do
                 {
                     randomResult = new Random().Next(maze.GetLength(0));
                     mStart[0] = randomResult;
-                } while (maze[mStart[0], mStart[1] + 1] == Wall);
+                } while (maze[mStart[0], mStart[1] + 1] == MazeConstants.Wall);
 
                 break;
-            case Horizontal:
+            case Orientation.Horizontal:
                 do
                 {
                     randomResult = new Random().Next(maze.GetLength(1));
                     mStart[1] = randomResult;
-                } while (maze[mStart[0] + 1, mStart[1]] == Wall);
+                } while (maze[mStart[0] + 1, mStart[1]] == MazeConstants.Wall);
 
                 break;
         }
@@ -237,19 +235,19 @@ public class DigMazeGenerator : MazeGenerator
 
         switch (MazeOrientation)
         {
-            case Vertical:
+            case Orientation.Vertical:
                 do
                 {
                     randomResult = new Random().Next(maze.GetLength(0));
                     mGoal[0] = randomResult;
-                } while (maze[mGoal[0], mGoal[1] - 1] == Wall);
+                } while (maze[mGoal[0], mGoal[1] - 1] == MazeConstants.Wall);
                 break;
-            case Horizontal:
+            case Orientation.Horizontal:
                 do
                 {
                     randomResult = new Random().Next(maze.GetLength(1));
                     mGoal[1] = randomResult;
-                } while (maze[mGoal[0] - 1, mGoal[1]] == Wall);
+                } while (maze[mGoal[0] - 1, mGoal[1]] == MazeConstants.Wall);
                 break;
         }
         return mGoal;
@@ -265,8 +263,8 @@ public class DigMazeGenerator : MazeGenerator
             }
             Console.Write(Environment.NewLine);
         }
-        Console.WriteLine($"Size: {maze.GetLength(0)}, {maze.GetLength(1)}");
-        Console.WriteLine($"Start: {start[0]}, {start[1]}");
-        Console.WriteLine($"Goal: {goal[0]}, {goal[1]}");
+        Console.WriteLine(string.Format("Size: {0}, {1}",maze.GetLength(0), maze.GetLength(1)));
+        Console.WriteLine(string.Format("Start: {0}, {1}",start[0], start[1]));
+        Console.WriteLine(string.Format("Goal: {0}, {1}", goal[0], goal[1]));
     }
 }
