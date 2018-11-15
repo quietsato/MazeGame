@@ -6,6 +6,7 @@ namespace MazeGame
         public const char Path = ' ';
         public const char Start = 'S';
         public const char Goal = 'G';
+        public const char Player = 'P';
     }
 
     public enum Direction
