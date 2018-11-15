@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MazeGame
+﻿namespace MazeGame
 {
     class Program
     {
@@ -17,9 +11,8 @@ namespace MazeGame
             // ゲーム開始準備
 
             // For Debugging
-            var generator = new DigMazeGenerator();
-            generator.GetFixedMaze(10, 9);
-            generator.GetResponsiveMaze();
+            var game = new Game(new DigMazeGenerator());
+            game.Start();
         }
     }
 }
