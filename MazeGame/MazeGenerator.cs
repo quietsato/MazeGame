@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using MazeGame;
 
 public abstract class MazeGenerator
-{   
+{
     /// <summary>
     /// 指定されたサイズの幅の迷路を返します
     /// 引数が適当な数字でなければ、それに最も近い大きさの迷路のうち小さいほうを返します
@@ -23,7 +23,7 @@ public abstract class MazeGenerator
 public class DigMazeGenerator : MazeGenerator
 {
     private const int MinimumSizeOfMaze = 5;
-    
+
     private char[,] maze;
     private List<int[]> startCells;
     private Orientation MazeOrientation;
@@ -38,7 +38,7 @@ public class DigMazeGenerator : MazeGenerator
             if (width < MinimumSizeOfMaze) width = MinimumSizeOfMaze;
             if (width % 2 == 0) width--;
         }
-        get {return width;}
+        get { return width; }
     }
 
     private int Height
@@ -49,7 +49,7 @@ public class DigMazeGenerator : MazeGenerator
             if (height < MinimumSizeOfMaze) height = MinimumSizeOfMaze;
             if (height % 2 == 0) height--;
         }
-        get {return height;}
+        get { return height; }
     }
 
     public override Maze GetFixedMaze(int width, int height)
@@ -64,15 +64,13 @@ public class DigMazeGenerator : MazeGenerator
         MazeOrientation = new Random().Next(2) == 0 ? Orientation.Vertical : Orientation.Horizontal;
 
         var mMaze = CreateMaze();
-        
+
         var mStart = GetMazeStart();
         var mGoal = GetMazeGoal();
 
         mMaze[mStart[0], mStart[1]] = MazeConstants.Start;
         mMaze[mGoal[0], mGoal[1]] = MazeConstants.Goal;
 
-        Debug(mMaze, mStart, mGoal);
-        
         return new Maze(mMaze, mStart, mGoal);
     }
     public override Maze GetResponsiveMaze()
@@ -99,8 +97,6 @@ public class DigMazeGenerator : MazeGenerator
                 }
             }
         }
-        
-        
 
         Dig(1, 1);
 
@@ -144,7 +140,7 @@ public class DigMazeGenerator : MazeGenerator
 
                 // 指定座標を通路とする
                 SetPath(x, y);
-                                
+
                 // ランダムに方向を決めて掘る
                 var directionIndex = r.Next(directions.Count);
                 switch (directions[directionIndex])
@@ -173,7 +169,7 @@ public class DigMazeGenerator : MazeGenerator
             var cell = GetStartCell();
             // 候補がなくなったとき穴掘り終了
             if (cell[0] == -1 && cell[1] == -1) break;
-            
+
             x = cell[0];
             y = cell[1];
         }
@@ -184,13 +180,13 @@ public class DigMazeGenerator : MazeGenerator
         maze[x, y] = MazeConstants.Path;
         if (x % 2 == 1 && y % 2 == 1)
         {
-            startCells.Add(new []{x, y});
+            startCells.Add(new[] { x, y });
         }
     }
 
     private int[] GetStartCell()
     {
-        if (startCells.Count == 0) return new []{-1, -1};
+        if (startCells.Count == 0) return new[] { -1, -1 };
 
         // ランダムに取得
         var r = new Random();
@@ -203,7 +199,7 @@ public class DigMazeGenerator : MazeGenerator
 
     private int[] GetMazeStart()
     {
-        int[] mStart = {0, 0};
+        int[] mStart = { 0, 0 };
         int randomResult;
 
         switch (MazeOrientation)
@@ -231,7 +227,7 @@ public class DigMazeGenerator : MazeGenerator
 
     private int[] GetMazeGoal()
     {
-        int[] mGoal = {maze.GetLength(0) - 1, maze.GetLength(1) - 1};
+        int[] mGoal = { maze.GetLength(0) - 1, maze.GetLength(1) - 1 };
         int randomResult;
 
         switch (MazeOrientation)
@@ -252,20 +248,5 @@ public class DigMazeGenerator : MazeGenerator
                 break;
         }
         return mGoal;
-    }
-
-    void Debug(char[,] maze, int[] start, int[] goal)
-    {
-        for (int y = 0; y < maze.GetLength(1); y++)
-        {
-            for (int x = 0; x < maze.GetLength(0); x++)
-            {
-                Console.Write(maze[x,y]);
-            }
-            Console.Write(Environment.NewLine);
-        }
-        Console.WriteLine("Size: {0}, {1}", maze.GetLength(0), maze.GetLength(1));
-        Console.WriteLine("Start: {0}, {1}", start[0], start[1]);
-        Console.WriteLine("Goal: {0}, {1}", goal[0], goal[1]);
     }
 }
