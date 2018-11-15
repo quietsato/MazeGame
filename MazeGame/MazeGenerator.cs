@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MazeGame;
 
 public abstract class MazeGenerator
 {   
@@ -72,7 +73,7 @@ public class DigMazeGenerator : MazeGenerator
 
         Debug(mMaze, mStart, mGoal);
         
-        return new Maze();
+        return new Maze(mMaze, mStart, mGoal);
     }
     public override Maze GetResponsiveMaze()
     {
@@ -263,8 +264,8 @@ public class DigMazeGenerator : MazeGenerator
             }
             Console.Write(Environment.NewLine);
         }
-        Console.WriteLine(string.Format("Size: {0}, {1}",maze.GetLength(0), maze.GetLength(1)));
-        Console.WriteLine(string.Format("Start: {0}, {1}",start[0], start[1]));
-        Console.WriteLine(string.Format("Goal: {0}, {1}", goal[0], goal[1]));
+        Console.WriteLine("Size: {0}, {1}", maze.GetLength(0), maze.GetLength(1));
+        Console.WriteLine("Start: {0}, {1}", start[0], start[1]);
+        Console.WriteLine("Goal: {0}, {1}", goal[0], goal[1]);
     }
 }
