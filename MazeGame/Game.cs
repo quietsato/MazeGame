@@ -29,7 +29,13 @@ namespace MazeGame
 
         public void Move(Direction d)
         {
-            Func<int, int, bool> isPath = (x, y) => _Maze.Map[x, y] == MazeConstants.Path;
+            Func<int, int, bool> isPath = (x, y) =>
+            {
+                if (x < 0 || x >= _Maze.Width) return false;
+                if (y < 0 || y >= maze.Height) return false;
+                return _Maze.Map[x, y] != MazeConstants.Wall;
+            };
+            
             switch (d)
             {
                 case Direction.Up:
@@ -41,12 +47,12 @@ namespace MazeGame
                         _Player[1]++;
                     break;
                 case Direction.Left:
-                    if (isPath(_Player[0] + 1, _Player[1]))
-                        _Player[0]++;
-                    break;
-                case Direction.Right:
                     if (isPath(_Player[0] - 1, _Player[1]))
                         _Player[0]--;
+                    break;
+                case Direction.Right:
+                    if (isPath(_Player[0] + 1, _Player[1]))
+                        _Player[0]++;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("d", d, null);
@@ -108,7 +114,11 @@ namespace MazeGame
                 }
             }
 
+            Console.CursorVisible = false;
+            
             InitializeDisplay();
+            
+            WaitInput();
         }
 
         public void End()
@@ -127,7 +137,8 @@ namespace MazeGame
                     if (!(x == _Player[0] && y == _Player[1])) Console.Write(_Maze.Map[x, y]);
                     else Console.Write(MazeConstants.Player);
                 }
-                Console.Write(Environment.NewLine);
+                
+                if(y < _Maze.Height - 1) Console.Write(Environment.NewLine);
             }
         }
 
@@ -139,6 +150,27 @@ namespace MazeGame
         public void WaitInput()
         {
             // プレイヤーの入力を待つ
+            while (true)
+            {
+                ConsoleKey key = Console.ReadKey().Key;
+                switch (key)
+                {
+                    case ConsoleKey.W:
+                        Move(Direction.Up);
+                        break;
+                    case ConsoleKey.A:
+                        Move(Direction.Left);
+                        break;
+                    case ConsoleKey.S:
+                        Move(Direction.Down);
+                        break;
+                    case ConsoleKey.D:
+                        Move(Direction.Right);
+                        break;
+                }
+                
+                InitializeDisplay();
+            }
         }
     }
 
