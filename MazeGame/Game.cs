@@ -1,4 +1,13 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Diagnostics.Eventing.Reader;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MazeGame
 {
@@ -7,6 +16,7 @@ namespace MazeGame
         private Maze maze;
 
         private int[] _Player;
+
         private Maze _Maze
         {
             set
@@ -16,6 +26,7 @@ namespace MazeGame
             }
             get { return maze; }
         }
+
         private MazeGenerator generator;
 
         /// <summary>
@@ -35,29 +46,42 @@ namespace MazeGame
                 if (y < 0 || y >= maze.Height) return false;
                 return _Maze.Map[x, y] != MazeConstants.Wall;
             };
-            
+
             switch (d)
             {
                 case Direction.Up:
                     if (isPath(_Player[0], _Player[1] - 1))
+                    {
                         _Player[1]--;
+                        InitializeDisplay();
+                    }
+
                     break;
                 case Direction.Down:
                     if (isPath(_Player[0], _Player[1] + 1))
+                    {
                         _Player[1]++;
+                        InitializeDisplay();
+                    }
+
                     break;
                 case Direction.Left:
                     if (isPath(_Player[0] - 1, _Player[1]))
+                    {
                         _Player[0]--;
+                        InitializeDisplay();
+                    }
+
                     break;
                 case Direction.Right:
                     if (isPath(_Player[0] + 1, _Player[1]))
+                    {
                         _Player[0]++;
+                        InitializeDisplay();
+                    }
+
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException("d", d, null);
             }
-            UpdateDisplay();
         }
 
         /// <summary>
@@ -103,6 +127,7 @@ namespace MazeGame
                     {
                         width = inputSize(Console.ReadLine());
                     } while (width == int.MinValue);
+
                     Console.WriteLine("迷路の縦幅を設定してください");
                     do
                     {
@@ -115,15 +140,18 @@ namespace MazeGame
             }
 
             Console.CursorVisible = false;
-            
+
             InitializeDisplay();
-            
+
             WaitInput();
+
+            while (true)
+            {
+            }
         }
 
         public void End()
         {
-
         }
 
         private void InitializeDisplay()
@@ -137,14 +165,9 @@ namespace MazeGame
                     if (!(x == _Player[0] && y == _Player[1])) Console.Write(_Maze.Map[x, y]);
                     else Console.Write(MazeConstants.Player);
                 }
-                
-                if(y < _Maze.Height - 1) Console.Write(Environment.NewLine);
-            }
-        }
 
-        private void UpdateDisplay()
-        {
-            // プレイヤーの動いた周辺だけを書き換える
+                if (y < _Maze.Height - 1) Console.Write(Environment.NewLine);
+            }
         }
 
         public void WaitInput()
@@ -152,8 +175,10 @@ namespace MazeGame
             // プレイヤーの入力を待つ
             while (true)
             {
-                ConsoleKey key = Console.ReadKey().Key;
-                switch (key)
+                if (!Console.KeyAvailable) continue;
+                var keyInfo = Console.ReadKey(true);
+
+                switch (keyInfo.Key)
                 {
                     case ConsoleKey.W:
                         Move(Direction.Up);
@@ -168,10 +193,7 @@ namespace MazeGame
                         Move(Direction.Right);
                         break;
                 }
-                
-                InitializeDisplay();
             }
         }
     }
-
 }
