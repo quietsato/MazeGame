@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Timers;
 using MazeGame;
 
 public abstract class MazeGenerator
@@ -207,7 +208,7 @@ public class DigMazeGenerator : MazeGenerator
             case Orientation.Vertical:
                 do
                 {
-                    randomResult = new Random().Next(maze.GetLength(0));
+                    randomResult = new Random((int)DateTime.Now.Ticks).Next(maze.GetLength(0));
                     mStart[0] = randomResult;
                 } while (maze[mStart[0], mStart[1] + 1] == MazeConstants.Wall);
 
@@ -215,7 +216,7 @@ public class DigMazeGenerator : MazeGenerator
             case Orientation.Horizontal:
                 do
                 {
-                    randomResult = new Random().Next(maze.GetLength(1));
+                    randomResult = new Random((int)DateTime.Now.Ticks).Next(maze.GetLength(1));
                     mStart[1] = randomResult;
                 } while (maze[mStart[0] + 1, mStart[1]] == MazeConstants.Wall);
 
@@ -235,14 +236,14 @@ public class DigMazeGenerator : MazeGenerator
             case Orientation.Vertical:
                 do
                 {
-                    randomResult = new Random().Next(maze.GetLength(0));
+                    randomResult = new Random((int)DateTime.Now.Ticks).Next(maze.GetLength(0));
                     mGoal[0] = randomResult;
                 } while (maze[mGoal[0], mGoal[1] - 1] == MazeConstants.Wall);
                 break;
             case Orientation.Horizontal:
                 do
                 {
-                    randomResult = new Random().Next(maze.GetLength(1));
+                    randomResult = new Random((int)DateTime.Now.Ticks).Next(maze.GetLength(1));
                     mGoal[1] = randomResult;
                 } while (maze[mGoal[0] - 1, mGoal[1]] == MazeConstants.Wall);
                 break;
