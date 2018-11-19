@@ -1,33 +1,24 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MazeGame
 {
     public class Game
     {
-        private Maze maze;
+        private Maze _maze;
 
-        private int[] _Player;
+        private int[] _player;
 
-        private Maze _Maze
+        private Maze Maze
         {
             set
             {
-                _Player = value.Start;
-                maze = value;
+                _player = value.Start;
+                _maze = value;
             }
-            get { return maze; }
+            get { return _maze; }
         }
 
-        private MazeGenerator generator;
+        private readonly MazeGenerator _generator;
 
         /// <summary>
         /// 新しいゲームのインスタンスを生成します
@@ -35,48 +26,48 @@ namespace MazeGame
         /// <param name="generator">迷路の生成方法</param>
         public Game(MazeGenerator generator)
         {
-            this.generator = generator;
+            _generator = generator;
         }
 
-        public void Move(Direction d)
+        private void Move(Direction d)
         {
             Func<int, int, bool> isPath = (x, y) =>
             {
-                if (x < 0 || x >= _Maze.Width) return false;
-                if (y < 0 || y >= maze.Height) return false;
-                return _Maze.Map[x, y] != MazeConstants.Wall;
+                if (x < 0 || x >= Maze.Width) return false;
+                if (y < 0 || y >= _maze.Height) return false;
+                return Maze.Map[x, y] != MazeConstants.Wall;
             };
 
             switch (d)
             {
                 case Direction.Up:
-                    if (isPath(_Player[0], _Player[1] - 1))
+                    if (isPath(_player[0], _player[1] - 1))
                     {
-                        _Player[1]--;
+                        _player[1]--;
                         InitializeDisplay();
                     }
 
                     break;
                 case Direction.Down:
-                    if (isPath(_Player[0], _Player[1] + 1))
+                    if (isPath(_player[0], _player[1] + 1))
                     {
-                        _Player[1]++;
+                        _player[1]++;
                         InitializeDisplay();
                     }
 
                     break;
                 case Direction.Left:
-                    if (isPath(_Player[0] - 1, _Player[1]))
+                    if (isPath(_player[0] - 1, _player[1]))
                     {
-                        _Player[0]--;
+                        _player[0]--;
                         InitializeDisplay();
                     }
 
                     break;
                 case Direction.Right:
-                    if (isPath(_Player[0] + 1, _Player[1]))
+                    if (isPath(_player[0] + 1, _player[1]))
                     {
-                        _Player[0]++;
+                        _player[0]++;
                         InitializeDisplay();
                     }
 
@@ -110,15 +101,16 @@ namespace MazeGame
             while (true)
             {
                 Console.Write("> ");
-                ConsoleKey input = Console.ReadKey().Key;
+                var input = Console.ReadKey().Key;
                 if (input == ConsoleKey.D1)
                 {
-                    _Maze = generator.GetResponsiveMaze();
+                    Maze = _generator.GetResponsiveMaze();
                     break;
                 }
-                else if (input == ConsoleKey.D2)
+
+                if (input == ConsoleKey.D2)
                 {
-                    int width, height = 0;
+                    int width, height;
 
                     Console.WriteLine("\n迷路のサイズを設定します");
                     Console.WriteLine("--------------------");
@@ -134,7 +126,7 @@ namespace MazeGame
                         height = inputSize(Console.ReadLine());
                     } while (height == int.MinValue);
 
-                    _Maze = generator.GetFixedMaze(width, height);
+                    Maze = _generator.GetFixedMaze(width, height);
                     break;
                 }
             }
@@ -144,33 +136,25 @@ namespace MazeGame
             InitializeDisplay();
 
             WaitInput();
-
-            while (true)
-            {
-            }
-        }
-
-        public void End()
-        {
         }
 
         private void InitializeDisplay()
         {
             // 全画面を書き換える = 画面を初期化する
             Console.Clear();
-            for (int y = 0; y < _Maze.Height; y++)
+            for (var y = 0; y < Maze.Height; y++)
             {
-                for (int x = 0; x < _Maze.Width; x++)
+                for (var x = 0; x < Maze.Width; x++)
                 {
-                    if (!(x == _Player[0] && y == _Player[1])) Console.Write(_Maze.Map[x, y]);
+                    if (!(x == _player[0] && y == _player[1])) Console.Write(Maze.Map[x, y]);
                     else Console.Write(MazeConstants.Player);
                 }
 
-                if (y < _Maze.Height - 1) Console.Write(Environment.NewLine);
+                if (y < Maze.Height - 1) Console.Write(Environment.NewLine);
             }
         }
 
-        public void WaitInput()
+        private void WaitInput()
         {
             // プレイヤーの入力を待つ
             while (true)
