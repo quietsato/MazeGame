@@ -6,13 +6,16 @@ namespace MazeGame
     {
         private Maze _maze;
 
-        private int[] _player;
+        private int[] _player = new []{0, 0};
 
         private Maze Maze
         {
             set
             {
-                _player = value.Start;
+                // 深いコピー
+                _player[0] = value.Start[0];
+                _player[1] = value.Start[1];
+
                 _maze = value;
             }
             get { return _maze; }
@@ -34,7 +37,7 @@ namespace MazeGame
             Func<int, int, bool> isPath = (x, y) =>
             {
                 if (x < 0 || x >= Maze.Width) return false;
-                if (y < 0 || y >= _maze.Height) return false;
+                if (y < 0 || y >= Maze.Height) return false;
                 return Maze.Map[x, y] != MazeConstants.Wall;
             };
 
@@ -136,6 +139,8 @@ namespace MazeGame
             InitializeDisplay();
 
             WaitInput();
+
+            // コンティニュー処理
         }
 
         private void InitializeDisplay()
@@ -156,8 +161,11 @@ namespace MazeGame
 
         private void WaitInput()
         {
+            Func<bool> isGoal = () => Maze.Map[_player[0], _player[1]] == MazeConstants.Goal;
+
+            Console.CancelKeyPress += Console_CancelKeyPress;
             // プレイヤーの入力を待つ
-            while (true)
+            while (!isGoal())
             {
                 if (!Console.KeyAvailable) continue;
                 var keyInfo = Console.ReadKey(true);
@@ -176,8 +184,28 @@ namespace MazeGame
                     case ConsoleKey.D:
                         Move(Direction.Right);
                         break;
+                    case ConsoleKey.R:
+                        // スタートからやり直す
+                        Console.Clear();
+                        Console.WriteLine("スタート位置からやり直しますか？");
+                        Console.Write("[Y]es/[N]o >");
+                        var input = Console.ReadKey();
+                        if (input.Key == ConsoleKey.Y)
+                        {
+                            _player[0] = Maze.Start[0];
+                            _player[1] = Maze.Start[1];
+                        }
+ 
+                        InitializeDisplay();
+                        break;
                 }
             }
+        }
+
+        void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            Console.Clear();
+            Console.CursorVisible = true;
         }
     }
 }
