@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace MazeGame
 {
@@ -59,7 +60,18 @@ namespace MazeGame
             Width = width;
             Height = height;
 
-            _maze = new char[Width, Height];
+            try
+            {
+                _maze = new char[Width, Height];
+            }
+            catch (OutOfMemoryException)
+            {
+                Console.Write(Environment.NewLine);
+                Console.WriteLine("迷路のサイズが大きすぎます");
+                Thread.Sleep(1000);
+                return GetFixedMaze(MinimumSizeOfMaze, MinimumSizeOfMaze);
+            }
+                
             _startCells = new List<int[]>();
 
             _mazeOrientation = new Random().Next(2) == 0 ? Orientation.Vertical : Orientation.Horizontal;
