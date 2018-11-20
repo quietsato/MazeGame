@@ -7,7 +7,7 @@ namespace MazeGame
     {
         private Maze _maze;
 
-        private int[] _player = new []{0, 0};
+        private readonly int[] _player = {0, 0};
 
         private Maze Maze
         {
@@ -84,12 +84,12 @@ namespace MazeGame
         /// </summary>
         public void Start()
         {
-            bool isContinue = false;
+            bool isContinue;
             Func<string, int> inputSize = s =>
             {
                 try
                 {
-                    int i = int.Parse(s);
+                    var i = int.Parse(s);
                     return i;
                 }
                 catch (Exception)
@@ -109,7 +109,7 @@ namespace MazeGame
                 Console.WriteLine("2: サイズを指定する");
                 while (true)
                 {
-                    Console.Write(">");
+                    Console.Write("[1/2]>");
                     var input = Console.ReadKey().Key;
                     if (input == ConsoleKey.D1)
                     {
@@ -126,16 +126,16 @@ namespace MazeGame
                         Console.WriteLine("迷路の横幅を指定してください");
                         do
                         {
+                            Console.Write("[横幅]>");
                             width = inputSize(Console.ReadLine());
                             if (width > Console.LargestWindowWidth)
                             {
                                 Console.WriteLine("横幅がウィンドウの最大サイズを超えていますがよろしいですか？");
-                                Console.Write("[Y]es/[N]o >");
-                                if (!(Console.ReadKey().Key == ConsoleKey.Y))
+                                Console.Write("[Y/N]>");
+                                if (Console.ReadKey().Key != ConsoleKey.Y)
                                 {
                                     width = int.MinValue;
                                     Console.Write(Environment.NewLine);
-                                    Console.Write(">");
                                 }
                             }
                         } while (width == int.MinValue);
@@ -144,16 +144,16 @@ namespace MazeGame
                         Console.WriteLine("迷路の縦幅を設定してください");
                         do
                         {
+                            Console.Write("[縦幅]>");
                             height = inputSize(Console.ReadLine());
                             if (height > Console.LargestWindowHeight)
                             {
                                 Console.WriteLine("縦幅がウィンドウの最大サイズを超えていますがよろしいですか？");
-                                Console.Write("[Y]es/[N]o >");
-                                if (!(Console.ReadKey().Key == ConsoleKey.Y)) 
+                                Console.Write("[Y/N]>");
+                                if (Console.ReadKey().Key != ConsoleKey.Y) 
                                 {
                                     height = int.MinValue;
                                     Console.Write(Environment.NewLine);
-                                    Console.Write(">");
                                 }
                             }
                         } while (height == int.MinValue);
@@ -174,13 +174,15 @@ namespace MazeGame
                 isContinue = CheckContinue();
 
             }while(isContinue);
+            
+            FinishGame();
         }
 
-        private bool CheckContinue()
+        private static bool CheckContinue()
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("新しく迷路を生成してゲームを続けますか？");
-            Console.Write("[Y]es/[N]o >");
+            Console.Write("[Y/N]>");
             var input = Console.ReadKey().Key;
             Console.Clear();
             return input == ConsoleKey.Y;
@@ -226,7 +228,7 @@ namespace MazeGame
         {
             Func<bool> isGoal = () => Maze.Map[_player[0], _player[1]] == MazeConstants.Goal;
 
-            Console.CancelKeyPress += Console_CancelKeyPress;
+            Console.CancelKeyPress += (sender, e) => FinishGame();
             // プレイヤーの入力を待つ
             while (!isGoal())
             {
@@ -251,8 +253,8 @@ namespace MazeGame
                         // スタートからやり直す
                         Console.Clear();
                         Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("スタート位置からやり直しますか？");
-                        Console.Write("[Y]es/[N]o >");
+                        Console.WriteLine("スタート位置からやり直しますか？ [Y]es/[N]o");
+                        Console.Write(">");
                         var input = Console.ReadKey();
                         if (input.Key == ConsoleKey.Y)
                         {
@@ -268,7 +270,7 @@ namespace MazeGame
             Goal();
         }
 
-        private void Goal()
+        private static void Goal()
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             for (var i = 0; i < 4; i++)
@@ -287,7 +289,7 @@ namespace MazeGame
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        private static void FinishGame()
         {
             Console.Clear();
             Console.CursorVisible = true;
