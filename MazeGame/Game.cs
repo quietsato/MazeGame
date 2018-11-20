@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace MazeGame
 {
@@ -83,6 +84,7 @@ namespace MazeGame
         /// </summary>
         public void Start()
         {
+            bool isContinue = false;
             Func<string, int> inputSize = s =>
             {
                 try
@@ -97,62 +99,123 @@ namespace MazeGame
                 }
             };
 
-            Console.WriteLine("迷路の種類を選択してください");
-            Console.WriteLine("------------------------");
-            Console.WriteLine("1: ウィンドウサイズに合わせる");
-            Console.WriteLine("2: サイズを指定する");
-            while (true)
+            do
             {
-                Console.Write("> ");
-                var input = Console.ReadKey().Key;
-                if (input == ConsoleKey.D1)
+                Console.ForegroundColor = ConsoleColor.White;
+
+                Console.WriteLine("迷路の種類を選択してください");
+                Console.WriteLine("------------------------");
+                Console.WriteLine("1: ウィンドウサイズに合わせる");
+                Console.WriteLine("2: サイズを指定する");
+                while (true)
                 {
-                    Maze = _generator.GetResponsiveMaze();
-                    break;
+                    Console.Write(">");
+                    var input = Console.ReadKey().Key;
+                    if (input == ConsoleKey.D1)
+                    {
+                        Maze = _generator.GetResponsiveMaze();
+                        break;
+                    }
+
+                    if (input == ConsoleKey.D2)
+                    {
+                        int width, height;
+
+                        Console.WriteLine("\n迷路のサイズを設定します");
+                        Console.WriteLine("--------------------");
+                        Console.WriteLine("迷路の横幅を指定してください");
+                        do
+                        {
+                            width = inputSize(Console.ReadLine());
+                            if (width > Console.LargestWindowWidth)
+                            {
+                                Console.WriteLine("横幅がウィンドウの最大サイズを超えていますがよろしいですか？");
+                                Console.Write("[Y]es/[N]o >");
+                                if (!(Console.ReadKey().Key == ConsoleKey.Y))
+                                {
+                                    width = int.MinValue;
+                                    Console.Write(Environment.NewLine);
+                                    Console.Write(">");
+                                }
+                            }
+                        } while (width == int.MinValue);
+
+                        Console.Write(Environment.NewLine);
+                        Console.WriteLine("迷路の縦幅を設定してください");
+                        do
+                        {
+                            height = inputSize(Console.ReadLine());
+                            if (height > Console.LargestWindowHeight)
+                            {
+                                Console.WriteLine("縦幅がウィンドウの最大サイズを超えていますがよろしいですか？");
+                                Console.Write("[Y]es/[N]o >");
+                                if (!(Console.ReadKey().Key == ConsoleKey.Y)) 
+                                {
+                                    height = int.MinValue;
+                                    Console.Write(Environment.NewLine);
+                                    Console.Write(">");
+                                }
+                            }
+                        } while (height == int.MinValue);
+
+                        Maze = _generator.GetFixedMaze(width, height);
+                        break;
+                    }
+                    Console.Write(Environment.NewLine);
                 }
 
-                if (input == ConsoleKey.D2)
-                {
-                    int width, height;
+                Console.CursorVisible = false;
 
-                    Console.WriteLine("\n迷路のサイズを設定します");
-                    Console.WriteLine("--------------------");
-                    Console.WriteLine("迷路の横幅を指定してください");
-                    do
-                    {
-                        width = inputSize(Console.ReadLine());
-                    } while (width == int.MinValue);
+                InitializeDisplay();
 
-                    Console.WriteLine("迷路の縦幅を設定してください");
-                    do
-                    {
-                        height = inputSize(Console.ReadLine());
-                    } while (height == int.MinValue);
+                WaitInput();
 
-                    Maze = _generator.GetFixedMaze(width, height);
-                    break;
-                }
-            }
+                // ゲーム終了時のコンティニュー処理
+                isContinue = CheckContinue();
 
-            Console.CursorVisible = false;
+            }while(isContinue);
+        }
 
-            InitializeDisplay();
-
-            WaitInput();
-
-            // コンティニュー処理
+        private bool CheckContinue()
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("新しく迷路を生成してゲームを続けますか？");
+            Console.Write("[Y]es/[N]o >");
+            var input = Console.ReadKey().Key;
+            Console.Clear();
+            return input == ConsoleKey.Y;
         }
 
         private void InitializeDisplay()
         {
-            // 全画面を書き換える = 画面を初期化する
+            // 全画面を書き換える
             Console.Clear();
+            Console.ForegroundColor = ConsoleColor.DarkGray;
             for (var y = 0; y < Maze.Height; y++)
             {
                 for (var x = 0; x < Maze.Width; x++)
                 {
-                    if (!(x == _player[0] && y == _player[1])) Console.Write(Maze.Map[x, y]);
-                    else Console.Write(MazeConstants.Player);
+                    if (!(x == _player[0] && y == _player[1]))
+                    {
+                        if (Maze.Map[x, y] != MazeConstants.Start && Maze.Map[x,y] != MazeConstants.Goal)
+                        {
+                            Console.Write(Maze.Map[x, y]);
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write(Maze.Map[x, y]);
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                        }
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write(MazeConstants.Player);
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                    }
+
+                    
                 }
 
                 if (y < Maze.Height - 1) Console.Write(Environment.NewLine);
@@ -187,6 +250,7 @@ namespace MazeGame
                     case ConsoleKey.R:
                         // スタートからやり直す
                         Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.White;
                         Console.WriteLine("スタート位置からやり直しますか？");
                         Console.Write("[Y]es/[N]o >");
                         var input = Console.ReadKey();
@@ -200,6 +264,27 @@ namespace MazeGame
                         break;
                 }
             }
+
+            Goal();
+        }
+
+        private void Goal()
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            for (var i = 0; i < 4; i++)
+            {
+                Console.Clear();
+                Thread.Sleep(500);
+                Console.WriteLine("   _____  ____          _      _ _ ");
+                Console.WriteLine("  / ____|/ __ \\   /\\   | |    | | |");
+                Console.WriteLine(" | |  __| |  | | /  \\  | |    | | |");
+                Console.WriteLine(" | | |_ | |  | |/ /\\ \\ | |    | | |");
+                Console.WriteLine(" | |__| | |__| / ____ \\| |____|_|_|");
+                Console.WriteLine("  \\_____|\\____/_/    \\_\\______(_|_)");
+                Thread.Sleep(500);
+            }
+
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
