@@ -1,12 +1,12 @@
-namespace MazeGame
+﻿namespace MazeGame
 {
     public static class MazeConstants
     {
-        public const char Wall = '#';
+        public const char Wall = '+';
         public const char Path = ' ';
         public const char Start = 'S';
         public const char Goal = 'G';
-        public const char Player = 'P';
+        public const char Player = '@';
     }
 
     public enum Direction
