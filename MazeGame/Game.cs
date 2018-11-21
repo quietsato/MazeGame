@@ -9,6 +9,10 @@ namespace MazeGame
 
         private readonly int[] _player = {0, 0};
 
+        private DateTime _startTime;
+
+        private DateTime _goalTime;
+
         private Maze Maze
         {
             set
@@ -167,6 +171,8 @@ namespace MazeGame
                 Console.CursorVisible = false;
 
                 InitializeDisplay();
+                
+                _startTime = DateTime.Now;
 
                 WaitInput();
 
@@ -270,8 +276,11 @@ namespace MazeGame
             Goal();
         }
 
-        private static void Goal()
+        private void Goal()
         {
+            _goalTime = DateTime.Now;
+            var clearTime = _goalTime - _startTime;
+            
             Console.ForegroundColor = ConsoleColor.Yellow;
             for (var i = 0; i < 4; i++)
             {
@@ -287,6 +296,7 @@ namespace MazeGame
             }
 
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("クリア時間は{0:0}分{1}秒でした",clearTime.TotalMinutes, clearTime.Seconds);
         }
 
         private static void FinishGame()
