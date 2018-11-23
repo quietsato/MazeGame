@@ -36,10 +36,10 @@
                 {
                     foreach (var r in value)
                     {
-                        if (r.Equals(Start) || r.Equals(Goal))
-                            continue;
-
-                        Map[r.X, r.Y] = MazeConstants.Route;
+                        if (!r.Equals(Start) && !r.Equals(Goal))
+                        {
+                            Map[r.X, r.Y] = MazeConstants.Route;
+                        }
                     }
                 }
 
@@ -58,8 +58,8 @@
         public Maze(char[,] maze, Location start, Location goal)
         {
             Map = maze;
-            Start = start;
-            Goal = goal;
+            Start = start.Copy();
+            Goal = goal.Copy();
             Width = maze.GetLength(0);
             Height = maze.GetLength(1);
             Route = null;

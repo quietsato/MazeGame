@@ -6,28 +6,18 @@ namespace MazeGame
     public class Game
     {
         private Maze _maze;
-        private Location _player = new Location(0, 0);
 
         private DateTime StartTime { get; set; }
 
         private DateTime GoalTime { get; set; }
 
-        private Location Player
-        {
-            get { return _player; }
-            set
-            {
-                _player.X = value.X;
-                _player.Y = value.Y;
-            }
-        }
-
+        private Location Player { get; set; }
 
         private Maze Maze
         {
             set
             {
-                _player = value.Start;
+                Player = value.Start.Copy();
                 _maze = value;
             }
             get { return _maze; }
@@ -208,7 +198,6 @@ namespace MazeGame
         {
             // 全画面を書き換える
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.DarkGray;
             for (var y = 0; y < Maze.Height; y++)
             {
                 for (var x = 0; x < Maze.Width; x++)
@@ -217,27 +206,25 @@ namespace MazeGame
                     {
                         Console.ForegroundColor = ConsoleColor.White;
                         Console.Write(MazeConstants.Player);
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
                     }
                     else
                     {
-                        if (Maze.Map[x, y] != MazeConstants.Start && Maze.Map[x, y] != MazeConstants.Goal)
+                        switch (Maze.Map[x, y])
                         {
-                            if (Maze.Route != null && Maze.Map[x, y] == MazeConstants.Route)
-                            {
+                            case MazeConstants.Route:
                                 Console.ForegroundColor = ConsoleColor.Yellow;
-                                Console.Write(Maze.Map[x, y]);
+                                break;
+
+                            case MazeConstants.Start:
+                            case MazeConstants.Goal:
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                break;
+
+                            default:
                                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                            }
-                            else
-                                Console.Write(Maze.Map[x, y]);
+                                break;
                         }
-                        else
-                        {
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write(Maze.Map[x, y]);
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                        }
+                        Console.Write(Maze.Map[x, y]);
                     }
                 }
 
@@ -255,7 +242,7 @@ namespace MazeGame
                 Environment.Exit(0);
             };
             // プレイヤーの入力を待つ
-            while (!isGoal() && Maze.Route == null)
+            while (!isGoal())
             {
                 if (!Console.KeyAvailable) continue;
                 var keyInfo = Console.ReadKey(true);
@@ -282,37 +269,19 @@ namespace MazeGame
                         Console.Write(">");
                         var input = Console.ReadKey();
                         if (input.Key == ConsoleKey.Y)
-                            Player = Maze.Start;
+                            Player = Maze.Start.Copy();
 
                         InitializeDisplay();
                         break;
                     case ConsoleKey.X:
-                        Maze.Route = new RouteGenerator(Maze).FindRoute();
+                        if(Maze.Route == null)
+                            Maze.Route = new RouteGenerator(Maze).FindRoute();
+                        InitializeDisplay();
                         break;
                 }
             }
 
-            if (isGoal())
-                Goal();
-            else if (Maze.Route != null)
-            {
-                InitializeDisplay();
-                while (true)
-                {
-                    if (Console.ReadKey().Key == ConsoleKey.F)
-                    {
-                        FinishGame();
-                        Environment.Exit(0);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("不明なエラーが発生しました");
-                Thread.Sleep(1000);
-                FinishGame();
-                Environment.Exit(-1);
-            }
+            Goal();
         }
 
         private void Goal()
