@@ -207,7 +207,14 @@ namespace MazeGame
                     {
                         if (Maze.Map[x, y] != MazeConstants.Start && Maze.Map[x,y] != MazeConstants.Goal)
                         {
-                            Console.Write(Maze.Map[x, y]);
+                            if (Maze.Route != null && Maze.Map[x, y] == MazeConstants.Route)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.Write(Maze.Map[x,y]);
+                                Console.ForegroundColor = ConsoleColor.DarkGray;
+                            }
+                            else
+                                Console.Write(Maze.Map[x, y]);
                         }
                         else
                         {
@@ -234,9 +241,13 @@ namespace MazeGame
         {
             Func<bool> isGoal = () => Maze.Map[_player[0], _player[1]] == MazeConstants.Goal;
 
-            Console.CancelKeyPress += (sender, e) => FinishGame();
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                FinishGame();
+                Environment.Exit(0);
+            };
             // プレイヤーの入力を待つ
-            while (!isGoal())
+            while (!isGoal() && Maze.Route == null)
             {
                 if (!Console.KeyAvailable) continue;
                 var keyInfo = Console.ReadKey(true);
@@ -270,10 +281,33 @@ namespace MazeGame
  
                         InitializeDisplay();
                         break;
+                    case ConsoleKey.X:
+                        Maze.Route = new RouteGenerator(Maze).FindRoute();
+                        break;
                 }
             }
 
-            Goal();
+            if (isGoal())
+                Goal();
+            else if(Maze.Route != null)
+            {
+                InitializeDisplay();
+                while (true)
+                {
+                    if (Console.ReadKey().Key == ConsoleKey.F)
+                    {
+                        FinishGame();
+                        Environment.Exit(0);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("不明なエラーが発生しました");
+                Thread.Sleep(1000);
+                FinishGame();
+                Environment.Exit(-1);
+            }
         }
 
         private void Goal()
