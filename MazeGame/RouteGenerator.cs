@@ -7,9 +7,9 @@ namespace MazeGame
     public class RouteGenerator
     {
         private Maze Maze { get; set; }
-        
+
         private int[] VisitedCell { get; set; }
-        
+
         private Location[] Route { get; set; }
 
         public RouteGenerator(Maze maze)
@@ -22,12 +22,12 @@ namespace MazeGame
         public Location[] FindRoute()
         {
             var nextCell = new Queue<Location>();
-            nextCell.Enqueue(new Location(Maze.Start[0], Maze.Start[1]));
+            nextCell.Enqueue(Maze.Start.Copy());
 
             while (nextCell.Count > 0)
             {
                 var target = nextCell.Dequeue();
-            
+
                 foreach (Direction d in Enum.GetValues(typeof(Direction)))
                 {
                     var next = target.Copy();
@@ -46,7 +46,8 @@ namespace MazeGame
                             next.X++;
                             break;
                     }
-                    if(next.X < 0 || next.Y < 0 || next.X >= Maze.Width || next.Y >= Maze.Height)    
+
+                    if (next.X < 0 || next.Y < 0 || next.X >= Maze.Width || next.Y >= Maze.Height)
                         continue;
                     if (Maze.Map[next.X, next.Y] != MazeConstants.Path)
                     {
@@ -58,15 +59,15 @@ namespace MazeGame
                             break;
                         }
                     }
-                    else if(VisitedCell[ToIndex(next)] < 0)
+                    else if (VisitedCell[ToIndex(next)] < 0)
                     {
                         SetVisited(target, next);
                         nextCell.Enqueue(next.Copy());
-                        Console.WriteLine("{0},{1}",next.X, next.Y);
+                        Console.WriteLine("{0},{1}", next.X, next.Y);
                     }
                 }
             }
-            
+
             return Route;
         }
 
@@ -78,7 +79,7 @@ namespace MazeGame
         private void SetRoute()
         {
             var routeList = new List<Location>();
-            var now = ToIndex(new Location(Maze.Goal[0], Maze.Goal[1]));
+            var now = ToIndex(Maze.Goal.Copy());
             routeList.Add(ToCell(now));
             while (VisitedCell[now] > 0)
             {
@@ -88,7 +89,7 @@ namespace MazeGame
             }
 
             routeList.Reverse();
-            
+
             Route = routeList.ToArray();
         }
 

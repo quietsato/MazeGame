@@ -13,9 +13,9 @@
     public class Location
     {
         public int X { get; set; }
-        
+
         public int Y { get; set; }
-        
+
         public Location(int x, int y)
         {
             X = x;
@@ -25,6 +25,20 @@
         public Location Copy()
         {
             return new Location(X, Y);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || obj.GetType() != typeof(Location))
+                return false;
+
+            var o = (Location) obj;
+            return o.X == X && o.Y == Y;
+        }
+
+        public override int GetHashCode()
+        {
+            return X + Y;
         }
     }
 

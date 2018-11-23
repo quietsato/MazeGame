@@ -27,8 +27,8 @@ namespace MazeGame
         private const int MinimumSizeOfMaze = 5;
 
         private char[,] _maze;
-        private List<int[]> _startCells;
-        private Orientation _mazeOrientation;
+        private List<Location> StartCells { get; set; }
+        private Orientation MazeOrientation { get; set; }
         private int _width;
         private int _height;
 
@@ -71,34 +71,34 @@ namespace MazeGame
                 Thread.Sleep(1000);
                 return GetFixedMaze(MinimumSizeOfMaze, MinimumSizeOfMaze);
             }
-                
-            _startCells = new List<int[]>();
 
-            _mazeOrientation = new Random().Next(2) == 0 ? Orientation.Vertical : Orientation.Horizontal;
+            StartCells = new List<Location>();
+
+            MazeOrientation = new Random().Next(2) == 0 ? Orientation.Vertical : Orientation.Horizontal;
 
             var mMaze = CreateMaze();
 
             var mStart = GetMazeStart();
             var mGoal = GetMazeGoal();
 
-            mMaze[mStart[0], mStart[1]] = MazeConstants.Start;
-            mMaze[mGoal[0], mGoal[1]] = MazeConstants.Goal;
+            mMaze[mStart.X, mStart.Y] = MazeConstants.Start;
+            mMaze[mGoal.X, mGoal.Y] = MazeConstants.Goal;
 
             return new Maze(mMaze, mStart, mGoal);
         }
 
         public override Maze GetResponsiveMaze()
         {
-            int x = Console.WindowWidth;
-            int y = Console.WindowHeight;
+            var x = Console.WindowWidth;
+            var y = Console.WindowHeight;
             return GetFixedMaze(x, y);
         }
 
         private char[,] CreateMaze()
         {
-            for (int y = 0; y < Height; y++)
+            for (var y = 0; y < Height; y++)
             {
-                for (int x = 0; x < Width; x++)
+                for (var x = 0; x < Width; x++)
                 {
                     // 外周部を通路にする
                     if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
@@ -114,9 +114,9 @@ namespace MazeGame
 
             Dig(1, 1);
 
-            for (int y = 0; y < Height; y++)
+            for (var y = 0; y < Height; y++)
             {
-                for (int x = 0; x < Width; x++)
+                for (var x = 0; x < Width; x++)
                 {
                     // 外周部を壁に戻す(スタート地点とゴール地点は開ける)
                     if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
@@ -187,10 +187,10 @@ namespace MazeGame
                 // 開始セルを取得
                 var cell = GetStartCell();
                 // 候補がなくなったとき穴掘り終了
-                if (cell[0] == -1 && cell[1] == -1) break;
+                if (cell.X == -1 && cell.Y == -1) break;
 
-                x = cell[0];
-                y = cell[1];
+                x = cell.X;
+                y = cell.Y;
             }
         }
 
@@ -199,44 +199,44 @@ namespace MazeGame
             _maze[x, y] = MazeConstants.Path;
             if (x % 2 == 1 && y % 2 == 1)
             {
-                _startCells.Add(new[] {x, y});
+                StartCells.Add(new Location(x, y));
             }
         }
 
-        private int[] GetStartCell()
+        private Location GetStartCell()
         {
-            if (_startCells.Count == 0) return new[] {-1, -1};
+            if (StartCells.Count == 0) return new Location(-1, -1);
 
             // ランダムに取得
             var r = new Random();
-            var index = r.Next(_startCells.Count);
-            var cell = _startCells[index];
-            _startCells.RemoveAt(index);
+            var index = r.Next(StartCells.Count);
+            var cell = StartCells[index];
+            StartCells.RemoveAt(index);
 
             return cell;
         }
 
-        private int[] GetMazeStart()
+        private Location GetMazeStart()
         {
-            int[] mStart = {0, 0};
+            var mStart = new Location(0, 0);
             int randomResult;
 
-            switch (_mazeOrientation)
+            switch (MazeOrientation)
             {
                 case Orientation.Vertical:
                     do
                     {
                         randomResult = new Random((int) DateTime.Now.Ticks).Next(_maze.GetLength(0));
-                        mStart[0] = randomResult;
-                    } while (_maze[mStart[0], mStart[1] + 1] == MazeConstants.Wall);
+                        mStart.X = randomResult;
+                    } while (_maze[mStart.X, mStart.Y + 1] == MazeConstants.Wall);
 
                     break;
                 case Orientation.Horizontal:
                     do
                     {
                         randomResult = new Random((int) DateTime.Now.Ticks).Next(_maze.GetLength(1));
-                        mStart[1] = randomResult;
-                    } while (_maze[mStart[0] + 1, mStart[1]] == MazeConstants.Wall);
+                        mStart.Y = randomResult;
+                    } while (_maze[mStart.X + 1, mStart.Y] == MazeConstants.Wall);
 
                     break;
             }
@@ -244,27 +244,27 @@ namespace MazeGame
             return mStart;
         }
 
-        private int[] GetMazeGoal()
+        private Location GetMazeGoal()
         {
-            int[] mGoal = {_maze.GetLength(0) - 1, _maze.GetLength(1) - 1};
+            var mGoal = new Location(Width - 1, Height - 1);
             int randomResult;
 
-            switch (_mazeOrientation)
+            switch (MazeOrientation)
             {
                 case Orientation.Vertical:
                     do
                     {
                         randomResult = new Random((int) DateTime.Now.Ticks).Next(_maze.GetLength(0));
-                        mGoal[0] = randomResult;
-                    } while (_maze[mGoal[0], mGoal[1] - 1] == MazeConstants.Wall);
+                        mGoal.X = randomResult;
+                    } while (_maze[mGoal.X, mGoal.Y - 1] == MazeConstants.Wall);
 
                     break;
                 case Orientation.Horizontal:
                     do
                     {
                         randomResult = new Random((int) DateTime.Now.Ticks).Next(_maze.GetLength(1));
-                        mGoal[1] = randomResult;
-                    } while (_maze[mGoal[0] - 1, mGoal[1]] == MazeConstants.Wall);
+                        mGoal.Y = randomResult;
+                    } while (_maze[mGoal.X - 1, mGoal.Y] == MazeConstants.Wall);
 
                     break;
             }

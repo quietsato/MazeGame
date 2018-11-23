@@ -20,27 +20,31 @@
         /// <summary>
         /// 迷路のスタート地点
         /// </summary>
-        public int[] Start { get; private set; }
+        public Location Start { get; private set; }
 
         /// <summary>
         /// 迷路のゴール地点
         /// </summary>
-        public int[] Goal { get; private set; }
-        
+        public Location Goal { get; private set; }
+
         public Location[] Route
         {
-            get { return _route;}
-            set{
+            get { return _route; }
+            set
+            {
                 if (value != null)
                 {
                     foreach (var r in value)
                     {
+                        if (r.Equals(Start) || r.Equals(Goal))
+                            continue;
+
                         Map[r.X, r.Y] = MazeConstants.Route;
-                    }                    
+                    }
                 }
 
                 _route = value;
-            } 
+            }
         }
 
         private Location[] _route;
@@ -51,7 +55,7 @@
         /// <param name="maze">迷路を表す2次元配列</param>
         /// <param name="start">迷路のスタート地点</param>
         /// <param name="goal">迷路のゴール地点</param>
-        public Maze(char[,] maze, int[] start, int[] goal)
+        public Maze(char[,] maze, Location start, Location goal)
         {
             Map = maze;
             Start = start;
