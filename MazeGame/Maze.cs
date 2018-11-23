@@ -26,6 +26,24 @@
         /// 迷路のゴール地点
         /// </summary>
         public int[] Goal { get; private set; }
+        
+        public Location[] Route
+        {
+            get { return _route;}
+            set{
+                if (value != null)
+                {
+                    foreach (var r in value)
+                    {
+                        Map[r.X, r.Y] = MazeConstants.Route;
+                    }                    
+                }
+
+                _route = value;
+            } 
+        }
+
+        private Location[] _route;
 
         /// <summary>
         /// 新しい迷路インスタンスを生成します
@@ -40,6 +58,7 @@
             Goal = goal;
             Width = maze.GetLength(0);
             Height = maze.GetLength(1);
+            Route = null;
         }
     }
 }
