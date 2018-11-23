@@ -6,21 +6,28 @@ namespace MazeGame
     public class Game
     {
         private Maze _maze;
+        private Location _player = new Location(0, 0);
 
-        private readonly int[] _player = {0, 0};
+        private DateTime StartTime { get; set; }
 
-        private DateTime _startTime;
+        private DateTime GoalTime { get; set; }
 
-        private DateTime _goalTime;
+        private Location Player
+        {
+            get { return _player; }
+            set
+            {
+                _player.X = value.X;
+                _player.Y = value.Y;
+            }
+        }
+
 
         private Maze Maze
         {
             set
             {
-                // 深いコピー
-                _player[0] = value.Start[0];
-                _player[1] = value.Start[1];
-
+                _player = value.Start;
                 _maze = value;
             }
             get { return _maze; }
@@ -49,33 +56,36 @@ namespace MazeGame
             switch (d)
             {
                 case Direction.Up:
-                    if (isPath(_player[0], _player[1] - 1))
+                    if (isPath(Player.X, Player.Y - 1))
                     {
-                        _player[1]--;
+                        Player.Y--;
                         InitializeDisplay();
                     }
 
                     break;
+
                 case Direction.Down:
-                    if (isPath(_player[0], _player[1] + 1))
+                    if (isPath(Player.X, Player.Y + 1))
                     {
-                        _player[1]++;
+                        Player.Y++;
                         InitializeDisplay();
                     }
 
                     break;
+
                 case Direction.Left:
-                    if (isPath(_player[0] - 1, _player[1]))
+                    if (isPath(Player.X - 1, Player.Y))
                     {
-                        _player[0]--;
+                        Player.X--;
                         InitializeDisplay();
                     }
 
                     break;
+
                 case Direction.Right:
-                    if (isPath(_player[0] + 1, _player[1]))
+                    if (isPath(Player.X + 1, Player.Y))
                     {
-                        _player[0]++;
+                        Player.X++;
                         InitializeDisplay();
                     }
 
@@ -154,7 +164,7 @@ namespace MazeGame
                             {
                                 Console.WriteLine("縦幅がウィンドウの最大サイズを超えていますがよろしいですか？");
                                 Console.Write("[Y/N]>");
-                                if (Console.ReadKey().Key != ConsoleKey.Y) 
+                                if (Console.ReadKey().Key != ConsoleKey.Y)
                                 {
                                     height = int.MinValue;
                                     Console.Write(Environment.NewLine);
@@ -165,22 +175,22 @@ namespace MazeGame
                         Maze = _generator.GetFixedMaze(width, height);
                         break;
                     }
+
                     Console.Write(Environment.NewLine);
                 }
 
                 Console.CursorVisible = false;
 
                 InitializeDisplay();
-                
-                _startTime = DateTime.Now;
+
+                StartTime = DateTime.Now;
 
                 WaitInput();
 
                 // ゲーム終了時のコンティニュー処理
                 isContinue = CheckContinue();
+            } while (isContinue);
 
-            }while(isContinue);
-            
             FinishGame();
         }
 
@@ -203,14 +213,20 @@ namespace MazeGame
             {
                 for (var x = 0; x < Maze.Width; x++)
                 {
-                    if (!(x == _player[0] && y == _player[1]))
+                    if (x == Player.X && y == Player.Y)
                     {
-                        if (Maze.Map[x, y] != MazeConstants.Start && Maze.Map[x,y] != MazeConstants.Goal)
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write(MazeConstants.Player);
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                    }
+                    else
+                    {
+                        if (Maze.Map[x, y] != MazeConstants.Start && Maze.Map[x, y] != MazeConstants.Goal)
                         {
                             if (Maze.Route != null && Maze.Map[x, y] == MazeConstants.Route)
                             {
                                 Console.ForegroundColor = ConsoleColor.Yellow;
-                                Console.Write(Maze.Map[x,y]);
+                                Console.Write(Maze.Map[x, y]);
                                 Console.ForegroundColor = ConsoleColor.DarkGray;
                             }
                             else
@@ -223,14 +239,6 @@ namespace MazeGame
                             Console.ForegroundColor = ConsoleColor.DarkGray;
                         }
                     }
-                    else
-                    {
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.Write(MazeConstants.Player);
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                    }
-
-                    
                 }
 
                 if (y < Maze.Height - 1) Console.Write(Environment.NewLine);
@@ -239,7 +247,7 @@ namespace MazeGame
 
         private void WaitInput()
         {
-            Func<bool> isGoal = () => Maze.Map[_player[0], _player[1]] == MazeConstants.Goal;
+            Func<bool> isGoal = () => (Player.Equals(Maze.Goal));
 
             Console.CancelKeyPress += (sender, e) =>
             {
@@ -274,11 +282,8 @@ namespace MazeGame
                         Console.Write(">");
                         var input = Console.ReadKey();
                         if (input.Key == ConsoleKey.Y)
-                        {
-                            _player[0] = Maze.Start[0];
-                            _player[1] = Maze.Start[1];
-                        }
- 
+                            Player = Maze.Start;
+
                         InitializeDisplay();
                         break;
                     case ConsoleKey.X:
@@ -289,7 +294,7 @@ namespace MazeGame
 
             if (isGoal())
                 Goal();
-            else if(Maze.Route != null)
+            else if (Maze.Route != null)
             {
                 InitializeDisplay();
                 while (true)
@@ -312,9 +317,9 @@ namespace MazeGame
 
         private void Goal()
         {
-            _goalTime = DateTime.Now;
-            var clearTime = _goalTime - _startTime;
-            
+            GoalTime = DateTime.Now;
+            var clearTime = GoalTime - StartTime;
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             for (var i = 0; i < 4; i++)
             {
@@ -330,7 +335,7 @@ namespace MazeGame
             }
 
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("クリア時間は{0:0}分{1}秒でした",clearTime.TotalMinutes, clearTime.Seconds);
+            Console.WriteLine("クリア時間は{0:0}分{1}秒でした", clearTime.TotalMinutes, clearTime.Seconds);
         }
 
         private static void FinishGame()
