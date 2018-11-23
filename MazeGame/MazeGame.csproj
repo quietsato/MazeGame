@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnswerGenerator.cs" />
+    <Compile Include="RouteGenerator.cs" />
     <Compile Include="Constant.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Maze.cs" />
