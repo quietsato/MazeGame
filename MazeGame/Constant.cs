@@ -7,6 +7,25 @@
         public const char Start = 'S';
         public const char Goal = 'G';
         public const char Player = '@';
+        public const char Route = '･';
+    }
+
+    public class Location
+    {
+        public int X { get; set; }
+        
+        public int Y { get; set; }
+        
+        public Location(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public Location Copy()
+        {
+            return new Location(X, Y);
+        }
     }
 
     public enum Direction
